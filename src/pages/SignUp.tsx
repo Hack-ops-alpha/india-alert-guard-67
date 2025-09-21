@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,24 +28,65 @@ const SignUp = () => {
     position: ""
   });
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (studentData.password !== studentData.confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    console.log("Student sign up:", studentData);
-    // TODO: Implement student registration
+    
+    setIsLoading(true);
+    try {
+      const success = await register({
+        name: studentData.name,
+        email: studentData.email,
+        password: studentData.password,
+        location: `${studentData.city}, ${studentData.state}`
+      }, 'student');
+      
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        alert('Registration failed. User may already exist.');
+      }
+    } catch (error) {
+      alert('Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (adminData.password !== adminData.confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    console.log("Admin sign up:", adminData);
-    // TODO: Implement admin registration
+    
+    setIsLoading(true);
+    try {
+      const success = await register({
+        name: adminData.name,
+        email: adminData.email,
+        password: adminData.password,
+        organization: adminData.organization,
+        position: adminData.position
+      }, 'admin');
+      
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        alert('Registration failed. User may already exist.');
+      }
+    } catch (error) {
+      alert('Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const indianStates = [
@@ -157,8 +199,8 @@ const SignUp = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Create Student Account
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Creating Account..." : "Create Student Account"}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">
@@ -246,8 +288,8 @@ const SignUp = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" variant="secondary">
-                    Request Admin Access
+                  <Button type="submit" className="w-full" variant="secondary" disabled={isLoading}>
+                    {isLoading ? "Creating Account..." : "Request Admin Access"}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">

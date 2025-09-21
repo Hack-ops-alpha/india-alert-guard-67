@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,16 +19,44 @@ const SignIn = () => {
     password: ""
   });
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Student sign in:", studentData);
-    // TODO: Implement student authentication
+    setIsLoading(true);
+    
+    try {
+      const success = await login(studentData.email, studentData.password, 'student');
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        alert('Invalid credentials. Try demo account: student@demo.com / demo123');
+      }
+    } catch (error) {
+      alert('Sign in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Admin sign in:", adminData);
-    // TODO: Implement admin authentication
+    setIsLoading(true);
+    
+    try {
+      const success = await login(adminData.email, adminData.password, 'admin');
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        alert('Invalid credentials. Try demo account: admin@demo.com / admin123');
+      }
+    } catch (error) {
+      alert('Sign in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,8 +113,8 @@ const SignIn = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Sign In as Student
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Signing In..." : "Sign In as Student"}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">
@@ -129,8 +158,8 @@ const SignIn = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" variant="secondary">
-                    Sign In as Admin
+                  <Button type="submit" className="w-full" variant="secondary" disabled={isLoading}>
+                    {isLoading ? "Signing In..." : "Sign In as Admin"}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">
